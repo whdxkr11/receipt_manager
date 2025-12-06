@@ -1,31 +1,51 @@
 # 🧾 Smart Receipt Manager (스마트 영수증 관리자)
 
-Flutter를 활용하여 개발 중인 **영수증 및 명함 자동 인식/관리 앱** 프로젝트입니다.
-현재 **카메라 기능을 연동하여 이미지를 캡처하고 미리보기하는 기능**까지 구현되어 있습니다.
+**Flutter**를 활용한 스마트 가계부 애플리케이션입니다.
+Google ML Kit(OCR)을 활용하여 영수증의 내용을 자동으로 인식하고, 정규표현식(Regex)을 통해 결제 금액을 자동으로 추출하여 DB에 저장합니다. 저장된 데이터는 달력(Calendar) 형태의 UI를 통해 직관적으로 관리할 수 있습니다.
 
-## 📱 프로젝트 소개
-이 프로젝트는 아이폰/안드로이드 크로스 플랫폼 앱 개발을 목표로 하며, 추후 **OCR(광학 문자 인식)** 기술을 통해 영수증의 내용을 자동으로 텍스트화하고 **로컬 DB**에 저장하여 관리하는 기능을 목표로 합니다.
+## 📱 프로젝트 소개 (Project Overview)
+이 프로젝트는 사용자가 영수증을 일일이 입력하는 불편함을 해소하기 위해 기획되었습니다.
+카메라로 영수증을 촬영하면, 앱이 스스로 **'합계', '결제 금액'** 등의 키워드를 분석하여 가격을 입력해줍니다. 촬영된 영수증 이미지는 앱 내부에 영구 저장되어 언제든 다시 확인할 수 있습니다.
 
 ## 🛠 기술 스택 (Tech Stack)
-- **Framework**: Flutter (3.x)
-- **Language**: Dart
-- **Packages**:
-  - `image_picker`: 카메라 접근 및 갤러리 이미지 선택
-  - (추후 추가 예정) `google_mlkit_text_recognition`: 텍스트 인식 (OCR)
-  - (추후 추가 예정) `sqflite`: 데이터 로컬 저장
+### Framework & Language
+- **Flutter (3.x)** / **Dart**
 
-## ✨ 현재 구현 기능 (Current Features)
-- [x] **카메라 실행**: 앱 내에서 디바이스의 카메라를 호출합니다.
-- [x] **이미지 캡처**: 사진을 촬영하고 데이터를 받아옵니다.
-- [x] **미리보기**: 촬영된 영수증 이미지를 화면에 띄워 확인합니다.
+### Key Libraries
+- **AI & Camera**:
+  - `image_picker`: 카메라 촬영 및 갤러리 이미지 로드
+  - `google_mlkit_text_recognition`: 온디바이스 OCR (텍스트 추출)
+- **Database & Storage**:
+  - `sqflite`: 로컬 데이터베이스 (SQLite) 구축 및 CRUD 구현
+  - `path_provider`: 디바이스 내부 저장소 경로 접근 (이미지 영구 저장)
+- **UI & Utilities**:
+  - `table_calendar`: 커스텀 달력 UI 및 마커 표시
+  - `intl`: 날짜 및 통화(Currency) 포맷팅
+
+## ✨ 핵심 기능 (Key Features)
+
+### 1. 📷 스마트 OCR 및 자동 파싱 (AI)
+- 영수증 사진을 촬영하면 Google ML Kit가 텍스트를 인식합니다.
+- **정규표현식(Regex)** 알고리즘을 적용하여 수많은 글자 중 **'합계', 'Total', '결제'** 키워드 옆의 숫자(금액)만을 자동으로 찾아냅니다.
+- 사용자는 상점명만 입력하면 되므로 입력 시간이 단축됩니다.
+
+### 2. 🗄️ 데이터베이스 및 이미지 관리 (Local DB)
+- **SQLite**를 연동하여 앱을 종료해도 데이터가 유지됩니다.
+- 촬영된 영수증 이미지는 임시 캐시가 아닌 **로컬 문서 폴더**에 영구 저장되어, 나중에 다시 볼 수 있습니다.
+
+### 3. 🗓️ 캘린더 및 지출 내역 시각화 (UI)
+- **월간 달력(Calendar)**에서 날짜별 총 지출액을 한눈에 확인할 수 있습니다.
+- 특정 날짜를 선택하면 하단 리스트에 해당 일자의 지출 내역이 표시됩니다.
+- 리스트 클릭 시 **상세 보기 페이지**로 이동하여 영수증 원본 이미지를 크게 확인할 수 있습니다.
 
 ## 🚀 개발 로드맵 (Roadmap)
-이 프로젝트는 단계별로 기능을 확장해 나갈 예정입니다.
-
-1.  **Phase 1 (완료)**: 프로젝트 환경 설정 및 카메라 연동
-2.  **Phase 2 (진행 예정)**: Google ML Kit을 활용한 영수증 텍스트(OCR) 추출
-3.  **Phase 3**: SQLite를 활용한 데이터 저장 (날짜, 금액, 상호명)
-4.  **Phase 4**: 리스트 UI 구현 및 검색/필터링 기능 추가
+- [x] **Phase 1**: 프로젝트 환경 설정 및 카메라 연동
+- [x] **Phase 2**: Google ML Kit OCR 연동 및 텍스트 추출
+- [x] **Phase 3**: 금액 자동 추출 알고리즘 구현 (Regex)
+- [x] **Phase 4**: SQLite DB 설계 및 달력(Calendar) UI 연동
+- [x] **Phase 5**: 영수증 이미지 영구 저장 및 상세 보기 구현
+- [ ] **Phase 6 (예정)**: 월별 지출 통계 그래프(Chart) 추가
+- [ ] **Phase 7 (예정)**: 카테고리(식비, 교통비 등) 분류 기능
 
 ## 🏁 실행 방법 (How to Run)
 
@@ -33,4 +53,9 @@ Flutter를 활용하여 개발 중인 **영수증 및 명함 자동 인식/관�
 
 1. **레포지토리 클론 (Clone)**
    ```bash
-   git clone [https://github.com/YOUR_ID/receipt_manager.git](https://github.com/YOUR_ID/receipt_manager.git)
+   git clone [https://github.com/whdxkr11/receipt_manager.git](https://github.com/whdxkr11/receipt_manager.git)
+
+## 🧑‍💻 Author
+- **Name**: Park Jong Tak
+- **Email**: whdxkr19@naver.com
+- **GitHub**: https://github.com/whdxkr11
