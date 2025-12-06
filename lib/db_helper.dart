@@ -78,4 +78,16 @@ class DBHelper {
       );
     });
   }
+
+  Future<bool> checkDuplicate(String title, int amount, String date) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'receipts',
+      where: 'title = ? AND amount = ? AND date = ?',
+      whereArgs: [title, amount, date],
+    );
+    
+    // 리스트가 비어있지 않다면(isNotEmpty) 이미 있다는 뜻!
+    return maps.isNotEmpty;
+  }
 }

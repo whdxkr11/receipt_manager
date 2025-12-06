@@ -147,21 +147,41 @@ class _HomeScreenState extends State<HomeScreen> {
             ElevatedButton(
               onPressed: () async {
                 if (_titleController.text.isNotEmpty && _amountController.text.isNotEmpty) {
-                  // 1. 이미지 영구 저장
-                  String savedPath = await _saveImagePermanently(image);
+                  final String title = _titleController.text;
+                  final int amount = int.parse(_amountController.text.replaceAll(',', ''));
+                  final String date = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-                  // 2. DB 저장
-                  await DBHelper().insertReceipt(Receipt(
-                    title: _titleController.text,
-                    amount: int.parse(_amountController.text.replaceAll(',', '')),
-                    date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
-                    imagePath: savedPath, // 저장된 경로 DB에 넣기
-                  ));
-                  
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('저장 완료!')),
-                  );
+                  // 1. 중복 체크 먼저 실행
+                  bool isDuplicate = await DBHelper().checkDuplicate(title, amount, date);
+
+                  if (isDuplicate) {
+                    // 2. 중복이면 경고창 띄우기 (context가 살아있어야 해서 mounted 체크)
+                    if (context.mounted) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text("⚠️ 중복 경고"),
+                          content: const Text("이 영수증은 오늘 이미 저장하신 것 같아요.\n그래도 또 저장할까요?"),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx), // 경고창 닫기 (저장 안 함)
+                              child: const Text("아니요 (취소)"),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.pop(ctx); // 경고창 닫고
+                                await _saveProcess(image, title, amount, date); // 강제 저장 진행
+                              },
+                              child: const Text("네 (저장)"),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  } else {
+                    // 3. 중복 아니면 바로 저장
+                    await _saveProcess(image, title, amount, date);
+                  }
                 }
               },
               child: const Text("저장하기"),
@@ -170,6 +190,28 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  // 실제 저장 동작을 수행하는 함수 (중복 코드를 줄이기 위해 분리)
+  Future<void> _saveProcess(XFile image, String title, int amount, String date) async {
+    // 1. 이미지 영구 저장
+    String savedPath = await _saveImagePermanently(image);
+
+    // 2. DB 저장
+    await DBHelper().insertReceipt(Receipt(
+      title: title,
+      amount: amount,
+      date: date,
+      imagePath: savedPath,
+    ));
+
+    // 3. 팝업 닫기 및 안내 메시지
+    if (mounted) {
+      Navigator.pop(context); // 입력창 닫기
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('저장 완료! 달력에서 확인하세요.')),
+      );
+    }
   }
 
   @override
